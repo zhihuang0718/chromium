@@ -1465,6 +1465,8 @@ component("net") {
       "quic/quartc/quartc_stream.h",
       "quic/quartc/quartc_stream_interface.h",
       "quic/quartc/quartc_task_runner_interface.h",
+      "quic/quartc/quic_data_stream.cc",
+      "quic/quartc/quic_data_stream.h",
       "sdch/sdch_owner.cc",
       "sdch/sdch_owner.h",
       "socket/client_socket_factory.cc",
