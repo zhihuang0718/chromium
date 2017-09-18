@@ -31,6 +31,8 @@
 #ifndef UdpTransport_h
 #define UdpTransport_h
 
+#include <memory>
+
 #include "core/dom/SuspendableObject.h"
 #include "modules/ModulesExport.h"
 #include "platform/bindings/ActiveScriptWrappable.h"
@@ -41,10 +43,11 @@
 namespace blink {
 
 class ExceptionState;
+class WebUdpTransport;
 
 class MODULES_EXPORT UdpTransport : public GarbageCollectedFinalized<UdpTransport>,
-  public ScriptWrappable,
-    public ActiveScriptWrappable<UdpTransport>,
+                                    public ScriptWrappable,
+                                    public ActiveScriptWrappable<UdpTransport>,
                                     public SuspendableObject {
   DEFINE_WRAPPERTYPEINFO();
   USING_GARBAGE_COLLECTED_MIXIN(UdpTransport);
@@ -69,6 +72,8 @@ class MODULES_EXPORT UdpTransport : public GarbageCollectedFinalized<UdpTranspor
 
  private:
   explicit UdpTransport(ExecutionContext*);
+
+  std::unique_ptr<WebUdpTransport> transport_;
 };
 
 }  // namespace blink

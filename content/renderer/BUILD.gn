@@ -405,6 +405,8 @@ target(link_target_type, "renderer") {
     "webscrollbarbehavior_impl_aura.h",
     "webscrollbarbehavior_impl_mac.h",
     "webscrollbarbehavior_impl_mac.mm",
+    "webudptransportimpl.cc",
+    "webudptransportimpl.h",
   ]
 
   if (!is_component_build) {

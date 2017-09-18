@@ -61,6 +61,7 @@
 #include "public/platform/WebSocketHandshakeThrottle.h"
 #include "public/platform/WebStorageNamespace.h"
 #include "public/platform/WebThread.h"
+#include "public/platform/WebUdpTransport.h"
 #include "public/platform/modules/serviceworker/WebServiceWorkerCacheStorage.h"
 #include "public/platform/modules/webmidi/WebMIDIAccessor.h"
 #include "services/service_manager/public/cpp/connector.h"
@@ -284,6 +285,11 @@ std::unique_ptr<WebFeaturePolicy> Platform::CreateFeaturePolicy(
 std::unique_ptr<WebFeaturePolicy> Platform::DuplicateFeaturePolicyWithOrigin(
     const WebFeaturePolicy&,
     const WebSecurityOrigin&) {
+  return nullptr;
+}
+
+std::unique_ptr<WebUdpTransport> Platform::CreateUdpTransport(
+) {
   return nullptr;
 }
 

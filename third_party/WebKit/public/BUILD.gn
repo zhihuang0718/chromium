@@ -361,6 +361,7 @@ source_set("blink_headers") {
     "platform/WebTouchPoint.h",
     "platform/WebTraceLocation.h",
     "platform/WebTrialTokenValidator.h",
+    "platform/WebUdpTransport.h",
     "platform/WebURL.h",
     "platform/WebURLError.h",
     "platform/WebURLLoadTiming.h",
