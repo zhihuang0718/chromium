@@ -53,6 +53,19 @@ QuicTransport* QuicTransport::Create(ExecutionContext* context,
   return new QuicTransport(context, is_server, transport);
 }
 
+QuicTransport* QuicTransport::Create(ExecutionContext* context,
+                                     bool is_server,
+                                     IceTransport* transport,
+                                     ExceptionState& exception_state) {
+  if (!transport) {
+    exception_state.ThrowDOMException(
+        kTypeMismatchError,
+        ExceptionMessages::ArgumentNullOrIncorrectType(1, "IceTransport"));
+    return nullptr;
+  }
+  return new QuicTransport(context, is_server, transport);
+}
+
 QuicTransport::QuicTransport(ExecutionContext* context, bool is_server, UdpTransport* transport)
     : SuspendableObject(context),
       is_server_(is_server),
@@ -65,6 +78,18 @@ QuicTransport::QuicTransport(ExecutionContext* context, bool is_server, UdpTrans
       is_server, transport->web_udp_transport(), this);
 }
 
+QuicTransport::QuicTransport(ExecutionContext* context, bool is_server, IceTransport* transport)
+    : SuspendableObject(context),
+      is_server_(is_server),
+      ice_transport_(transport),
+      dispatch_scheduled_event_runner_(
+          AsyncMethodRunner<QuicTransport>::Create(
+              this,
+              &QuicTransport::DispatchScheduledEvent)) {
+  quic_transport_ = Platform::Current()->CreateQuicTransport(
+      is_server, transport->web_ice_transport(), this);
+}
+
 QuicTransport::~QuicTransport() {
 }
 
@@ -73,6 +98,15 @@ void QuicTransport::connect(ExceptionState& exception_state) {
     exception_state.ThrowDOMException(kInvalidAccessError, "Can't connect from the server side...");
     return;
   }
+
+  if (ice_transport_) {
+    // TODO: wait for ice to be writable and then Connect.
+    exception_state.ThrowDOMException(
+        kNotSupportedError,
+        "QuicTransport::connect with ice_transport_ is not implemented.");
+    return;
+  }
+
   quic_transport_->Connect();
 }
 
@@ -141,6 +175,7 @@ void QuicTransport::DispatchScheduledEvent() {
 
 DEFINE_TRACE(QuicTransport) {
   visitor->Trace(udp_transport_);
+  visitor->Trace(ice_transport_);
   visitor->Trace(dispatch_scheduled_event_runner_);
   visitor->Trace(scheduled_events_);
   EventTargetWithInlineData::Trace(visitor);

@@ -751,6 +751,9 @@ class BLINK_PLATFORM_EXPORT Platform {
   virtual std::unique_ptr<WebQuicTransport>
   CreateQuicTransport(bool is_server, WebUdpTransport* udp_transport, WebQuicTransportDelegate* delegate);
 
+  virtual std::unique_ptr<WebQuicTransport>
+  CreateQuicTransport(bool is_server, WebIceTransport* ice_transport, WebQuicTransportDelegate* delegate);
+
  protected:
   Platform();
   virtual ~Platform();

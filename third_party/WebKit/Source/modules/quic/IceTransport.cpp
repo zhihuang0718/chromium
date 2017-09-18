@@ -50,6 +50,21 @@ IceTransport::IceTransport(ExecutionContext* context)
 IceTransport::~IceTransport() {
 }
 
+bool IceTransport::ready_to_send() const {
+  // TODO: Set based on P2PTransportChannel::OnReadyToSend
+  return true;
+}
+
+void IceTransport::startGathering() {
+  // TODO: P2PTransportChannel::MaybeStartGathering();
+}
+
+/*
+DOMString getLocalCandidates() {
+  // TODO
+}
+*/
+
 WebIceTransport* IceTransport::web_ice_transport() {
   return transport_.get();
 }

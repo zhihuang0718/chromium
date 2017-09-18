@@ -17,6 +17,7 @@ class WebIceTransportImpl : public blink::WebIceTransport,
                             public net::QuartcSessionInterface::PacketTransport,
                             public P2PSocketClientDelegate {
  public:
+  // TODO: Not sure if we need the dispatcher here.
   WebIceTransportImpl(P2PSocketDispatcher* dispatcher);
   ~WebIceTransportImpl() override;
 

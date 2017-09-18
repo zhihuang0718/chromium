@@ -35,5 +35,8 @@
     Exposed=(Window,Worker),
     DependentLifetime
 ] interface IceTransport {
-    // TODO
+    bool ready_to_send();
+    void startGathering();
+    // TODO: How to exchange candidates?
+    //DOMString getLocalCandidates();
 };

@@ -54,7 +54,9 @@ class MODULES_EXPORT IceTransport : public GarbageCollectedFinalized<IceTranspor
   ~IceTransport() override;
 
   // Implementation of IDL interface.
-  // TODO: control gathering?
+  bool ready_to_send() const;
+  void startGathering();
+  //DOMString getLocalCandidates();
 
   // Methods used by QuicTransport.
   WebIceTransport* web_ice_transport();

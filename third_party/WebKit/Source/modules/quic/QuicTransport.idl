@@ -31,6 +31,7 @@
 [
     ActiveScriptWrappable,
     Constructor(boolean isServer, UdpTransport transport),
+    Constructor(boolean isServer, IceTransport transport),
     ConstructorCallWith=ExecutionContext,
     RaisesException=Constructor,
     Exposed=(Window,Worker),

@@ -305,4 +305,9 @@ Platform::CreateQuicTransport(bool is_server, WebUdpTransport* udp_transport, We
   return nullptr;
 }
 
+std::unique_ptr<WebQuicTransport>
+Platform::CreateQuicTransport(bool is_server, WebIceTransport* ice_transport, WebQuicTransportDelegate* delegate) {
+  return nullptr;
+}
+
 }  // namespace blink

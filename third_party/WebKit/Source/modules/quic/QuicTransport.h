@@ -37,6 +37,7 @@
 #include "modules/EventTargetModules.h"
 #include "modules/ModulesExport.h"
 #include "modules/quic/UdpTransport.h"
+#include "modules/quic/IceTransport.h"
 #include "platform/AsyncMethodRunner.h"
 #include "platform/bindings/ActiveScriptWrappable.h"
 #include "platform/bindings/ScriptWrappable.h"
@@ -59,6 +60,7 @@ class MODULES_EXPORT QuicTransport : public EventTargetWithInlineData,
 
  public:
   static QuicTransport* Create(ExecutionContext*, bool, UdpTransport*, ExceptionState&);
+  static QuicTransport* Create(ExecutionContext*, bool, IceTransport*, ExceptionState&);
   ~QuicTransport() override;
 
   void connect(ExceptionState&);
@@ -85,12 +87,14 @@ class MODULES_EXPORT QuicTransport : public EventTargetWithInlineData,
 
  private:
   QuicTransport(ExecutionContext*, bool, UdpTransport*);
+  QuicTransport(ExecutionContext*, bool, IceTransport*);
 
   void ScheduleDispatchEvent(Event*);
   void DispatchScheduledEvent();
 
   bool is_server_;
   Member<UdpTransport> udp_transport_;
+  Member<IceTransport> ice_transport_;
   std::unique_ptr<WebQuicTransport> quic_transport_;
 
   Member<AsyncMethodRunner<QuicTransport>> dispatch_scheduled_event_runner_;
