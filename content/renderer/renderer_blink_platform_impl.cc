@@ -74,6 +74,7 @@
 #include "content/renderer/webclipboard_impl.h"
 #include "content/renderer/webgraphicscontext3d_provider_impl.h"
 #include "content/renderer/webpublicsuffixlist_impl.h"
+#include "content/renderer/webudptransportimpl.h"
 #include "device/gamepad/public/cpp/gamepads.h"
 #include "gpu/command_buffer/client/gles2_interface.h"
 #include "gpu/config/gpu_info.h"
@@ -1337,6 +1338,12 @@ void RendererBlinkPlatformImpl::RequestPurgeMemory() {
   // when kMemoryCoordinatorV0 is enabled.
   // Use ChildMemoryCoordinator when memory coordinator is always enabled.
   base::MemoryCoordinatorClientRegistry::GetInstance()->PurgeMemory();
+}
+
+std::unique_ptr<blink::WebUdpTransport> RendererBlinkPlatformImpl::CreateUdpTransport() {
+  RenderThreadImpl* render_thread = RenderThreadImpl::current();
+  P2PSocketDispatcher* dispatcher = render_thread->p2p_socket_dispatcher();
+  return base::MakeUnique<WebUdpTransportImpl>(dispatcher);
 }
 
 }  // namespace content

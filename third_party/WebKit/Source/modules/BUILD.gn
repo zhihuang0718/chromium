@@ -143,6 +143,7 @@ target("jumbo_" + modules_target_type, "modules") {
     "//third_party/WebKit/Source/modules/plugins",
     "//third_party/WebKit/Source/modules/presentation",
     "//third_party/WebKit/Source/modules/push_messaging",
+    "//third_party/WebKit/Source/modules/quic",
     "//third_party/WebKit/Source/modules/quota",
     "//third_party/WebKit/Source/modules/remoteplayback",
     "//third_party/WebKit/Source/modules/screen_orientation",

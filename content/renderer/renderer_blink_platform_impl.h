@@ -248,6 +248,9 @@ class CONTENT_EXPORT RendererBlinkPlatformImpl : public BlinkPlatformImpl {
 
   void RequestPurgeMemory() override;
 
+  std::unique_ptr<blink::WebUdpTransport>
+  CreateUdpTransport() override;
+
   PossiblyAssociatedInterfacePtr<mojom::URLLoaderFactory>
   CreateNetworkURLLoaderFactory();
 

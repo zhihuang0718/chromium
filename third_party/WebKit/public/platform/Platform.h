@@ -137,6 +137,7 @@ class WebTaskRunner;
 class WebThemeEngine;
 class WebThread;
 class WebTrialTokenValidator;
+class WebUdpTransport;
 class WebURLLoaderMockFactory;
 class WebURLResponse;
 class WebURLResponse;
@@ -736,6 +737,11 @@ class BLINK_PLATFORM_EXPORT Platform {
       const WebFeaturePolicy&,
       const WebSecurityOrigin&);
 
+  // QUIC-related.
+
+  virtual std::unique_ptr<WebUdpTransport>
+  CreateUdpTransport();
+  
  protected:
   Platform();
   virtual ~Platform();
