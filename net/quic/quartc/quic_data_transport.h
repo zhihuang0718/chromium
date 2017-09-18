@@ -9,18 +9,20 @@
 #include "net/quic/quartc/quartc_factory_interface.h"
 #include "net/quic/quartc/quartc_session_interface.h"
 #include "net/quic/quartc/quartc_stream_interface.h"
+#include "third_party/WebKit/public/platform/WebQuicTransport.h"
 
 namespace net {
 
 class QUIC_EXPORT_PRIVATE QuicDataTransport
-    : public QuartcSessionInterface::Delegate {
+    : public QuartcSessionInterface::Delegate,
+      public blink::WebQuicTransport {
  public:
   // QuicDataTransport doesn't own |packet_transport|;
   QuicDataTransport(bool is_server,
                     QuartcSessionInterface::PacketTransport* packet_transport);
   ~QuicDataTransport() override;
 
-  void Connect();
+  void Connect() override;
 
   QuartcStreamInterface* CreateQuicDataStream();
 

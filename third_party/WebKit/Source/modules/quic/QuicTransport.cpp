@@ -34,6 +34,7 @@
 #include "bindings/core/v8/ExceptionState.h"
 #include "core/dom/ExecutionContext.h"
 #include "public/platform/Platform.h"
+#include "public/platform/WebQuicTransport.h"
 
 namespace blink {
 
@@ -54,9 +55,18 @@ QuicTransport::QuicTransport(ExecutionContext* context, bool is_server, UdpTrans
     : SuspendableObject(context),
       is_server_(is_server),
       udp_transport_(transport) {
+  quic_transport_ = Platform::Current()->CreateQuicTransport(
+      is_server, transport->web_udp_transport());
 }
 
 QuicTransport::~QuicTransport() {
+}
+
+void QuicTransport::Connect(ExceptionState& exception_state) {
+  if (is_server_) {
+    exception_state.ThrowDOMException(kInvalidAccessError, "Can't connect from the server side...");
+  }
+  quic_transport_->Connect();
 }
 
 void QuicTransport::ContextDestroyed(ExecutionContext*) {

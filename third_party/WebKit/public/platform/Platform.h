@@ -120,6 +120,7 @@ class WebPluginListBuilder;
 class WebPrescientNetworking;
 class WebPublicSuffixList;
 class WebPushProvider;
+class WebQuicTransport;
 class WebRTCCertificateGenerator;
 class WebRTCPeerConnectionHandler;
 class WebRTCPeerConnectionHandlerClient;
@@ -741,6 +742,9 @@ class BLINK_PLATFORM_EXPORT Platform {
 
   virtual std::unique_ptr<WebUdpTransport>
   CreateUdpTransport();
+
+  virtual std::unique_ptr<WebQuicTransport>
+  CreateQuicTransport(bool is_server, WebUdpTransport* udp_transport);
   
  protected:
   Platform();

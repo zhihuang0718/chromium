@@ -56,9 +56,13 @@ class MODULES_EXPORT UdpTransport : public GarbageCollectedFinalized<UdpTranspor
   static UdpTransport* Create(ExecutionContext*);
   ~UdpTransport() override;
 
+  // Implementation of IDL interface.
   String address() const;
   void setDestination(const String& address,
                      ExceptionState&);
+  
+  // Methods used by QuicTransport.
+  WebUdpTransport* web_udp_transport();
 
   // SuspendableObject functions.
   void ContextDestroyed(ExecutionContext*) override;

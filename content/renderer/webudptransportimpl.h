@@ -13,18 +13,29 @@
 #include "content/renderer/p2p/socket_client_delegate.h"
 #include "content/renderer/p2p/socket_client_impl.h"
 #include "net/base/ip_endpoint.h"
+#include "net/quic/quartc/quartc_session_interface.h"
 #include "third_party/WebKit/public/platform/WebUdpTransport.h"
 
 namespace content {
 
-class WebUdpTransportImpl : public blink::WebUdpTransport, public P2PSocketClientDelegate {
+class WebUdpTransportImpl : public blink::WebUdpTransport,
+                            public net::QuartcSessionInterface::PacketTransport,
+                            public P2PSocketClientDelegate {
  public:
   WebUdpTransportImpl(P2PSocketDispatcher* dispatcher);
   ~WebUdpTransportImpl() override;
 
+  // Set pointer to Quartc session that will receive callbacks for packets
+  // received.
+  void set_quartc_session(net::QuartcSessionInterface* session);
+
   // blink::WebUdpTransport implementation.
   blink::WebString Address() const override;
   void SetDestination(const blink::WebString& address_string) override;
+
+  // net::QuartcSessionInterface::PacketTransport implementation.
+  bool CanWrite() override;
+  int Write(const char* buffer, size_t buf_len) override;
   
   // P2PSocketClientDelegate overrides.
   void OnOpen(const net::IPEndPoint& local_address,
@@ -35,13 +46,14 @@ class WebUdpTransportImpl : public blink::WebUdpTransport, public P2PSocketClien
   void OnError() override {};
   void OnDataReceived(const net::IPEndPoint& address,
                               const std::vector<char>& data,
-                              const base::TimeTicks& timestamp) override {};
+                              const base::TimeTicks& timestamp) override;
 
  private:
   std::unique_ptr<IpcNetworkManager> network_manager_;
   scoped_refptr<P2PSocketClientImpl> socket_;
   net::IPEndPoint local_address_;
   net::IPEndPoint remote_address_;
+  net::QuartcSessionInterface* quartc_session_;
 };
 
 }  // namespace content

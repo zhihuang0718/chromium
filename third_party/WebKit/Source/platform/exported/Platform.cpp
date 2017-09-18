@@ -56,6 +56,7 @@
 #include "public/platform/WebMediaRecorderHandler.h"
 #include "public/platform/WebMediaStreamCenter.h"
 #include "public/platform/WebPrerenderingSupport.h"
+#include "public/platform/WebQuicTransport.h"
 #include "public/platform/WebRTCCertificateGenerator.h"
 #include "public/platform/WebRTCPeerConnectionHandler.h"
 #include "public/platform/WebSocketHandshakeThrottle.h"
@@ -290,6 +291,11 @@ std::unique_ptr<WebFeaturePolicy> Platform::DuplicateFeaturePolicyWithOrigin(
 
 std::unique_ptr<WebUdpTransport> Platform::CreateUdpTransport(
 ) {
+  return nullptr;
+}
+
+std::unique_ptr<WebQuicTransport>
+Platform::CreateQuicTransport(bool is_server, WebUdpTransport* udp_transport) {
   return nullptr;
 }
 

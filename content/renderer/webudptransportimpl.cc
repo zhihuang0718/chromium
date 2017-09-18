@@ -6,6 +6,7 @@
 #include "base/strings/string_split.h"
 #include "content/renderer/webudptransportimpl.h"
 #include "net/base/parse_number.h"
+#include "third_party/webrtc/rtc_base/asyncpacketsocket.h"
 
 namespace content {
 
@@ -18,6 +19,10 @@ WebUdpTransportImpl::WebUdpTransportImpl(P2PSocketDispatcher* dispatcher) :
 
 WebUdpTransportImpl::~WebUdpTransportImpl() {
   socket_->Close();
+}
+
+void WebUdpTransportImpl::set_quartc_session(net::QuartcSessionInterface* session) {
+  quartc_session_ = session;
 }
 
 blink::WebString WebUdpTransportImpl::Address() const {
@@ -62,9 +67,34 @@ void WebUdpTransportImpl::SetDestination(const blink::WebString& address_string)
   remote_address_ = net::IPEndPoint(address, port);
 }
 
+bool WebUdpTransportImpl::CanWrite() {
+  return local_address_.port() != 0 && remote_address_.port() != 0;
+}
+
+int WebUdpTransportImpl::Write(const char* buffer, size_t buf_len) {
+  if (!CanWrite()) {
+    return 0;
+  }
+  std::vector<char> data(buffer, buffer + buf_len);
+  socket_->Send(remote_address_, data, rtc::PacketOptions());
+  // It's ok if the send didn't actually succeed; we're UDP so we're unreliable
+  // anyway.
+  return static_cast<int>(buf_len);
+}
+
 void WebUdpTransportImpl::OnOpen(const net::IPEndPoint& local_address,
                     const net::IPEndPoint& remote_address) {
   local_address_ = local_address;
+} 
+
+void WebUdpTransportImpl::OnDataReceived(const net::IPEndPoint& address,
+                            const std::vector<char>& data,
+                            const base::TimeTicks& timestamp) {
+  if (!quartc_session_) {
+    LOG(WARNING) << "Received data before hooked up to QuicTransport!";
+    return;
+  }
+  quartc_session_->OnTransportReceived(data.data(), data.size());
 }
 
 }  // namespace content

@@ -237,7 +237,8 @@ void P2PSocketHostUdp::HandleReadResult(int result) {
   if (result > 0) {
     std::vector<char> data(recv_buffer_->data(), recv_buffer_->data() + result);
 
-    if (!base::ContainsKey(connected_peers_, recv_address_)) {
+    // Hacking this out so it works with QUIC.
+    if (false && !base::ContainsKey(connected_peers_, recv_address_)) {
       P2PSocketHost::StunMessageType type;
       bool stun = GetStunPacketType(&*data.begin(), data.size(), &type);
       if ((stun && IsRequestOrResponse(type))) {
@@ -291,7 +292,9 @@ void P2PSocketHostUdp::DoSend(const PendingPacket& packet) {
   // messages to that peer and they are throttled using the |throttler_|. This
   // has to be done here instead of Send() to ensure P2PMsg_OnSendComplete
   // messages are sent in correct order.
-  if (!base::ContainsKey(connected_peers_, packet.to)) {
+
+  // Hacking this out so it works with QUIC.
+  if (false && !base::ContainsKey(connected_peers_, packet.to)) {
     P2PSocketHost::StunMessageType type = P2PSocketHost::StunMessageType();
     bool stun = GetStunPacketType(packet.data->data(), packet.size, &type);
     if (!stun || type == STUN_DATA_INDICATION) {

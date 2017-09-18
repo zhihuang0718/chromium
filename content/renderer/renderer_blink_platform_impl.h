@@ -251,6 +251,9 @@ class CONTENT_EXPORT RendererBlinkPlatformImpl : public BlinkPlatformImpl {
   std::unique_ptr<blink::WebUdpTransport>
   CreateUdpTransport() override;
 
+  std::unique_ptr<blink::WebQuicTransport>
+  CreateQuicTransport(bool is_server, blink::WebUdpTransport* udp_transport) override;
+
   PossiblyAssociatedInterfacePtr<mojom::URLLoaderFactory>
   CreateNetworkURLLoaderFactory();
 

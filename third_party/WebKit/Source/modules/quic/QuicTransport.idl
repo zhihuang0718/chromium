@@ -36,4 +36,5 @@
     Exposed=(Window,Worker),
     DependentLifetime
 ] interface QuicTransport {
+    [RaisesException] void Connect();
 };

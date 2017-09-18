@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Google Inc.  All rights reserved.
+ * Copyright (C) 2017 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,59 +28,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "modules/quic/UdpTransport.h"
+#ifndef WebQuicTransport_h
+#define WebQuicTransport_h
 
-#include "bindings/core/v8/ExceptionState.h"
-#include "core/dom/ExecutionContext.h"
-#include "public/platform/Platform.h"
-#include "public/platform/WebUdpTransport.h"
+#include "WebString.h"
 
 namespace blink {
 
-UdpTransport* UdpTransport::Create(ExecutionContext* context) {
-  return new UdpTransport(context);
-}
+class WebQuicTransport {
+ public:
+  virtual ~WebQuicTransport() {}
 
-UdpTransport::UdpTransport(ExecutionContext* context)
-    : SuspendableObject(context) {
-  transport_ = Platform::Current()->CreateUdpTransport();
-}
-
-UdpTransport::~UdpTransport() {
-}
-
-String UdpTransport::address() const {
-  return transport_->Address();
-}
-
-void UdpTransport::setDestination(const String& address,
-                                  ExceptionState&) {
-  transport_->SetDestination(address);
-}
-
-WebUdpTransport* UdpTransport::web_udp_transport() {
-  return transport_.get();
-}
-
-void UdpTransport::ContextDestroyed(ExecutionContext*) {
-  transport_.reset(nullptr);
-}
-
-void UdpTransport::Suspend() {
-  // Suspend/resume event queue if we have one.
-}
-
-void UdpTransport::Resume() {
-}
-
-bool UdpTransport::HasPendingActivity() const {
-  // Prevents us from being garbage collected. Probably good enough for the
-  // hackathon.
-  return true;
-}
-
-DEFINE_TRACE(UdpTransport) {
-  SuspendableObject::Trace(visitor);
-}
+  virtual void Connect() = 0;
+};
 
 }  // namespace blink
+
+#endif  // WebQuicTransport_h

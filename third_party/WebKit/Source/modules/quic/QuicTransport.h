@@ -56,6 +56,8 @@ class MODULES_EXPORT QuicTransport : public GarbageCollectedFinalized<QuicTransp
   static QuicTransport* Create(ExecutionContext*, bool, UdpTransport*, ExceptionState&);
   ~QuicTransport() override;
 
+  void Connect(ExceptionState&);
+
   // SuspendableObject functions.
   void ContextDestroyed(ExecutionContext*) override;
   void Suspend() override;
@@ -71,6 +73,7 @@ class MODULES_EXPORT QuicTransport : public GarbageCollectedFinalized<QuicTransp
 
   bool is_server_;
   Member<UdpTransport> udp_transport_;
+  std::unique_ptr<WebQuicTransport> quic_transport_;
 };
 
 }  // namespace blink

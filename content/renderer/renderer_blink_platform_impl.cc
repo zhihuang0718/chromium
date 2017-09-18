@@ -85,6 +85,7 @@
 #include "media/filters/stream_parser_factory.h"
 #include "mojo/public/cpp/bindings/strong_associated_binding.h"
 #include "mojo/public/cpp/bindings/strong_binding.h"
+#include "net/quic/quartc/quic_data_transport.h"
 #include "ppapi/features/features.h"
 #include "services/service_manager/public/cpp/connector.h"
 #include "services/service_manager/public/cpp/interface_provider.h"
@@ -101,6 +102,7 @@
 #include "third_party/WebKit/public/platform/WebMediaStreamCenter.h"
 #include "third_party/WebKit/public/platform/WebMediaStreamCenterClient.h"
 #include "third_party/WebKit/public/platform/WebPluginListBuilder.h"
+#include "third_party/WebKit/public/platform/WebQuicTransport.h"
 #include "third_party/WebKit/public/platform/WebRTCCertificateGenerator.h"
 #include "third_party/WebKit/public/platform/WebRTCPeerConnectionHandler.h"
 #include "third_party/WebKit/public/platform/WebSecurityOrigin.h"
@@ -1344,6 +1346,16 @@ std::unique_ptr<blink::WebUdpTransport> RendererBlinkPlatformImpl::CreateUdpTran
   RenderThreadImpl* render_thread = RenderThreadImpl::current();
   P2PSocketDispatcher* dispatcher = render_thread->p2p_socket_dispatcher();
   return base::MakeUnique<WebUdpTransportImpl>(dispatcher);
+}
+
+std::unique_ptr<blink::WebQuicTransport> RendererBlinkPlatformImpl::CreateQuicTransport(
+    bool is_server, blink::WebUdpTransport* udp_transport) {
+  // The static_cast is a hack but this is a hackathon.
+  WebUdpTransportImpl* udp_transport_impl = static_cast<WebUdpTransportImpl*>(udp_transport);
+  auto quic_transport = base::MakeUnique<net::QuicDataTransport>(
+      is_server, udp_transport_impl);
+  udp_transport_impl->set_quartc_session(quic_transport->quartc_session());
+  return quic_transport;
 }
 
 }  // namespace content
