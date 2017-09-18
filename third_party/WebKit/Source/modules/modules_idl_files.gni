@@ -228,6 +228,7 @@ modules_idl_files =
                     "push_messaging/PushMessageData.idl",
                     "push_messaging/PushSubscription.idl",
                     "push_messaging/PushSubscriptionOptions.idl",
+                    "quic/QuicTransport.idl",
                     "quic/UdpTransport.idl",
                     "quota/DOMError.idl",
                     "quota/DeprecatedStorageInfo.idl",
