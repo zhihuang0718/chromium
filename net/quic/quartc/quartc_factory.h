@@ -12,6 +12,10 @@
 #include "net/quic/quartc/quartc_factory_interface.h"
 #include "net/quic/quartc/quartc_packet_writer.h"
 #include "net/quic/quartc/quartc_task_runner_interface.h"
+// Use Chromium specific stuff.
+#include "net/quic/chromium/quic_chromium_alarm_factory.h"
+#include "net/quic/chromium/quic_chromium_connection_helper.h"
+#include "net/quic/platform/impl/quic_chromium_clock.h"
 
 namespace net {
 
@@ -52,12 +56,17 @@ class QUIC_EXPORT_PRIVATE QuartcFactory : public QuartcFactoryInterface,
       Perspective perspective);
 
   // Used to implement QuicAlarmFactory..
-  QuartcTaskRunnerInterface* task_runner_;
+  QuartcTaskRunnerInterface* task_runner_ = nullptr;
   // Used to implement the QuicConnectionHelperInterface.
   // The QuicClock wrapper held in this variable is owned by QuartcFactory,
   // but the QuartcClockInterface inside of it belongs to the user!
   std::unique_ptr<QuicClock> clock_;
   SimpleBufferAllocator buffer_allocator_;
+
+  // Chromium-specfic stuff.
+  QuicChromiumClock chromium_clock_;
+  std::unique_ptr<QuicChromiumAlarmFactory> chromium_alarm_factory_;
+  std::unique_ptr<QuicChromiumConnectionHelper> chromium_connection_helper_;
 };
 
 }  // namespace net

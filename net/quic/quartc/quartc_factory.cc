@@ -4,6 +4,7 @@
 
 #include "net/quic/quartc/quartc_factory.h"
 
+#include "base/threading/thread_task_runner_handle.h"
 #include "net/quic/core/crypto/quic_random.h"
 #include "net/quic/platform/api/quic_socket_address.h"
 #include "net/quic/quartc/quartc_session.h"
@@ -99,7 +100,12 @@ class QuartcClock : public QuicClock {
 
 QuartcFactory::QuartcFactory(const QuartcFactoryConfig& factory_config)
     : task_runner_(factory_config.task_runner),
-      clock_(new QuartcClock(factory_config.clock)) {}
+      clock_(new QuartcClock(factory_config.clock)) {
+  chromium_alarm_factory_.reset(new QuicChromiumAlarmFactory(
+      base::ThreadTaskRunnerHandle::Get().get(), &chromium_clock_));
+  chromium_connection_helper_.reset(new QuicChromiumConnectionHelper(
+      &chromium_clock_, QuicRandom::GetInstance()));
+}
 
 QuartcFactory::~QuartcFactory() {}
 
@@ -123,7 +129,8 @@ std::unique_ptr<QuartcSessionInterface> QuartcFactory::CreateQuartcSession(
   return std::unique_ptr<QuartcSessionInterface>(new QuartcSession(
       std::move(quic_connection), quic_config,
       quartc_session_config.unique_remote_server_id, perspective,
-      this /*QuicConnectionHelperInterface*/, clock_.get()));
+      chromium_connection_helper_.get() /*QuicConnectionHelperInterface*/,
+      &chromium_clock_));
 }
 
 std::unique_ptr<QuicConnection> QuartcFactory::CreateQuicConnection(
@@ -138,9 +145,9 @@ std::unique_ptr<QuicConnection> QuartcFactory::CreateQuicConnection(
   QuicConnectionId dummy_id = 0;
   QuicSocketAddress dummy_address(QuicIpAddress::Any4(), 0 /*Port*/);
   return std::unique_ptr<QuicConnection>(new QuicConnection(
-      dummy_id, dummy_address, this, /*QuicConnectionHelperInterface*/
-      this /*QuicAlarmFactory*/, writer.release(), true /*own the writer*/,
-      perspective, AllSupportedVersions()));
+      dummy_id, dummy_address, chromium_connection_helper_.get(),
+      chromium_alarm_factory_.get() /*QuicAlarmFactory*/, writer.release(),
+      true /*own the writer*/, perspective, AllSupportedVersions()));
 }
 
 QuicAlarm* QuartcFactory::CreateAlarm(QuicAlarm::Delegate* delegate) {
