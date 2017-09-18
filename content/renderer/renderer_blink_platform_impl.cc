@@ -1349,11 +1349,13 @@ std::unique_ptr<blink::WebUdpTransport> RendererBlinkPlatformImpl::CreateUdpTran
 }
 
 std::unique_ptr<blink::WebQuicTransport> RendererBlinkPlatformImpl::CreateQuicTransport(
-    bool is_server, blink::WebUdpTransport* udp_transport) {
+    bool is_server,
+    blink::WebUdpTransport* udp_transport,
+    blink::WebQuicTransportDelegate* delegate) {
   // The static_cast is a hack but this is a hackathon.
   WebUdpTransportImpl* udp_transport_impl = static_cast<WebUdpTransportImpl*>(udp_transport);
   auto quic_transport = base::MakeUnique<net::QuicDataTransport>(
-      is_server, udp_transport_impl);
+      is_server, udp_transport_impl, delegate);
   udp_transport_impl->set_quartc_session(quic_transport->quartc_session());
   return quic_transport;
 }

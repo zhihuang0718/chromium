@@ -34,6 +34,7 @@
 #include "bindings/core/v8/ExceptionState.h"
 #include "core/dom/ExecutionContext.h"
 #include "modules/quic/QuicStream.h"
+#include "modules/quic/QuicStreamEvent.h"
 #include "public/platform/Platform.h"
 #include "public/platform/WebQuicTransport.h"
 
@@ -55,9 +56,13 @@ QuicTransport* QuicTransport::Create(ExecutionContext* context,
 QuicTransport::QuicTransport(ExecutionContext* context, bool is_server, UdpTransport* transport)
     : SuspendableObject(context),
       is_server_(is_server),
-      udp_transport_(transport) {
+      udp_transport_(transport),
+      dispatch_scheduled_event_runner_(
+          AsyncMethodRunner<QuicTransport>::Create(
+              this,
+              &QuicTransport::DispatchScheduledEvent)) {
   quic_transport_ = Platform::Current()->CreateQuicTransport(
-      is_server, transport->web_udp_transport());
+      is_server, transport->web_udp_transport(), this);
 }
 
 QuicTransport::~QuicTransport() {
@@ -66,6 +71,7 @@ QuicTransport::~QuicTransport() {
 void QuicTransport::connect(ExceptionState& exception_state) {
   if (is_server_) {
     exception_state.ThrowDOMException(kInvalidAccessError, "Can't connect from the server side...");
+    return;
   }
   quic_transport_->Connect();
 }
@@ -74,6 +80,7 @@ QuicStream* QuicTransport::createStream(ScriptState* script_state, ExceptionStat
   WebQuicStream* web_stream = quic_transport_->CreateStream();
   if (!web_stream) {
     exception_state.ThrowDOMException(kOperationError, "Failed to create QuicStream; is transport connected?");
+    return nullptr;
   }
   ExecutionContext* context = ExecutionContext::From(script_state);
   QuicStream* stream = new QuicStream(context, web_stream);
@@ -81,14 +88,31 @@ QuicStream* QuicTransport::createStream(ScriptState* script_state, ExceptionStat
   return stream;
 }
 
+void QuicTransport::OnIncomingStream(WebQuicStream* web_stream) {
+  DCHECK(GetExecutionContext()->IsContextThread());
+
+  QuicStream* stream = new QuicStream(GetExecutionContext(), web_stream);
+  ScheduleDispatchEvent(QuicStreamEvent::Create(EventTypeNames::stream,
+                                                false, false, stream));
+}
+
+const AtomicString& QuicTransport::InterfaceName() const {
+  return EventTargetNames::QuicTransport;
+}
+
+ExecutionContext* QuicTransport::GetExecutionContext() const {
+  return SuspendableObject::GetExecutionContext();
+}
+
 void QuicTransport::ContextDestroyed(ExecutionContext*) {
 }
 
 void QuicTransport::Suspend() {
-  // Suspend/resume event queue if we have one.
+  dispatch_scheduled_event_runner_->Suspend();
 }
 
 void QuicTransport::Resume() {
+  dispatch_scheduled_event_runner_->Resume();
 }
 
 bool QuicTransport::HasPendingActivity() const {
@@ -97,8 +121,28 @@ bool QuicTransport::HasPendingActivity() const {
   return true;
 }
 
+void QuicTransport::ScheduleDispatchEvent(Event* event) {
+  scheduled_events_.push_back(event);
+  dispatch_scheduled_event_runner_->RunAsync();
+}
+
+void QuicTransport::DispatchScheduledEvent() {
+  HeapVector<Member<Event>> events;
+  events.swap(scheduled_events_);
+
+  HeapVector<Member<Event>>::iterator it = events.begin();
+  for (; it != events.end(); ++it) {
+    DispatchEvent(it->Release());
+  }
+
+  events.clear();
+}
+
 DEFINE_TRACE(QuicTransport) {
   visitor->Trace(udp_transport_);
+  visitor->Trace(dispatch_scheduled_event_runner_);
+  visitor->Trace(scheduled_events_);
+  EventTargetWithInlineData::Trace(visitor);
   SuspendableObject::Trace(visitor);
 }
 

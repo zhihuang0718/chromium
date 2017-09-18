@@ -229,6 +229,7 @@ modules_idl_files =
                     "push_messaging/PushSubscription.idl",
                     "push_messaging/PushSubscriptionOptions.idl",
                     "quic/QuicStream.idl",
+                    "quic/QuicStreamEvent.idl",
                     "quic/QuicTransport.idl",
                     "quic/UdpTransport.idl",
                     "quota/DOMError.idl",

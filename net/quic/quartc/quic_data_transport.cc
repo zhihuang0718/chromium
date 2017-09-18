@@ -10,8 +10,12 @@ namespace net {
 
 QuicDataTransport::QuicDataTransport(
     bool is_server,
-    QuartcSessionInterface::PacketTransport* packet_transport)
-    : is_server_(is_server) {
+    QuartcSessionInterface::PacketTransport* packet_transport,
+    blink::WebQuicTransportDelegate* delegate)
+    : is_server_(is_server),
+      delegate_(delegate) {
+  DCHECK(delegate);
+
   QuartcFactoryConfig factory_config;
   // Create a QuartcFactory with nullptr task_runner_ and nullptr clock_. We can
   // try to hack the QuartcFactory so that it uses the Chromium builtin
@@ -96,7 +100,7 @@ blink::WebQuicStream* QuicDataTransport::CreateStream() {
   if (!stream) {
     return nullptr;
   }
-  return new QuicStreamAdapter(CreateQuicDataStream());
+  return new QuicStreamAdapter(stream);
 }
 
 // Delegate overrides.
@@ -107,7 +111,7 @@ void QuicDataTransport::OnCryptoHandshakeComplete() {
 
 void QuicDataTransport::OnIncomingStream(QuartcStreamInterface* stream) {
   DCHECK(delegate_);
-  delegate_->OnIncomingStream(stream);
+  delegate_->OnIncomingStream(new QuicStreamAdapter(stream));
 }
 
 void QuicDataTransport::OnConnectionClosed(int error_code, bool from_remote) {

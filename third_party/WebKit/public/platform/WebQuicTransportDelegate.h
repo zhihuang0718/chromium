@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Google Inc.  All rights reserved.
+ * Copyright (C) 2017 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,15 +28,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-[
-    ActiveScriptWrappable,
-    Constructor(boolean isServer, UdpTransport transport),
-    ConstructorCallWith=ExecutionContext,
-    RaisesException=Constructor,
-    Exposed=(Window,Worker),
-    DependentLifetime
-] interface QuicTransport : EventTarget {
-    [RaisesException] void connect();
-    [CallWith=ScriptState, RaisesException] QuicStream createStream();
-    attribute EventHandler onstream;
+#ifndef WebQuicTransportDelegate_h
+#define WebQuicTransportDelegate_h
+
+#include "WebQuicStream.h"
+
+namespace blink {
+
+class WebQuicTransportDelegate {
+ public:
+  virtual ~WebQuicTransportDelegate() {}
+
+  virtual void OnIncomingStream(WebQuicStream* stream) = 0;
 };
+
+}  // namespace blink
+
+#endif  // WebQuicTransportDelegate_h

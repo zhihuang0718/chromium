@@ -295,7 +295,7 @@ std::unique_ptr<WebUdpTransport> Platform::CreateUdpTransport(
 }
 
 std::unique_ptr<WebQuicTransport>
-Platform::CreateQuicTransport(bool is_server, WebUdpTransport* udp_transport) {
+Platform::CreateQuicTransport(bool is_server, WebUdpTransport* udp_transport, WebQuicTransportDelegate* delegate) {
   return nullptr;
 }
 

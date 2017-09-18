@@ -8,6 +8,8 @@ blink_modules_sources("quic") {
   sources = [
     "QuicStream.cpp",
     "QuicStream.h",
+    "QuicStreamEvent.cpp",
+    "QuicStreamEvent.h",
     "QuicTransport.cpp",
     "QuicTransport.h",
     "UdpTransport.cpp",

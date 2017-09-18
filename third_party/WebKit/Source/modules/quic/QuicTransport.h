@@ -34,22 +34,26 @@
 #include <memory>
 
 #include "core/dom/SuspendableObject.h"
+#include "modules/EventTargetModules.h"
 #include "modules/ModulesExport.h"
 #include "modules/quic/UdpTransport.h"
+#include "platform/AsyncMethodRunner.h"
 #include "platform/bindings/ActiveScriptWrappable.h"
 #include "platform/bindings/ScriptWrappable.h"
 #include "platform/heap/GarbageCollected.h"
+#include "public/platform/WebQuicTransportDelegate.h"
 
 namespace blink {
 
 class ExceptionState;
 class QuicStream;
+class WebQuicStream;
 class WebQuicTransport;
 
-class MODULES_EXPORT QuicTransport : public GarbageCollectedFinalized<QuicTransport>,
-                                    public ScriptWrappable,
-                                    public ActiveScriptWrappable<QuicTransport>,
-                                    public SuspendableObject {
+class MODULES_EXPORT QuicTransport : public EventTargetWithInlineData,
+                                     public ActiveScriptWrappable<QuicTransport>,
+                                     public SuspendableObject,
+                                     public WebQuicTransportDelegate {
   DEFINE_WRAPPERTYPEINFO();
   USING_GARBAGE_COLLECTED_MIXIN(QuicTransport);
 
@@ -59,6 +63,15 @@ class MODULES_EXPORT QuicTransport : public GarbageCollectedFinalized<QuicTransp
 
   void connect(ExceptionState&);
   QuicStream* createStream(ScriptState*, ExceptionState&);
+
+  DEFINE_ATTRIBUTE_EVENT_LISTENER(stream);
+
+  // WebQuicTransportDelegate implementation.
+  void OnIncomingStream(WebQuicStream* web_stream) override;
+
+  // EventTarget
+  const AtomicString& InterfaceName() const override;
+  ExecutionContext* GetExecutionContext() const override;
 
   // SuspendableObject functions.
   void ContextDestroyed(ExecutionContext*) override;
@@ -73,9 +86,15 @@ class MODULES_EXPORT QuicTransport : public GarbageCollectedFinalized<QuicTransp
  private:
   QuicTransport(ExecutionContext*, bool, UdpTransport*);
 
+  void ScheduleDispatchEvent(Event*);
+  void DispatchScheduledEvent();
+
   bool is_server_;
   Member<UdpTransport> udp_transport_;
   std::unique_ptr<WebQuicTransport> quic_transport_;
+
+  Member<AsyncMethodRunner<QuicTransport>> dispatch_scheduled_event_runner_;
+  HeapVector<Member<Event>> scheduled_events_;
 };
 
 }  // namespace blink

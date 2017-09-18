@@ -11,6 +11,7 @@
 #include "net/quic/quartc/quartc_stream_interface.h"
 #include "third_party/WebKit/public/platform/WebQuicStream.h"
 #include "third_party/WebKit/public/platform/WebQuicTransport.h"
+#include "third_party/WebKit/public/platform/WebQuicTransportDelegate.h"
 
 namespace net {
 
@@ -20,23 +21,14 @@ class QUIC_EXPORT_PRIVATE QuicDataTransport
  public:
   // QuicDataTransport doesn't own |packet_transport|;
   QuicDataTransport(bool is_server,
-                    QuartcSessionInterface::PacketTransport* packet_transport);
+                    QuartcSessionInterface::PacketTransport* packet_transport,
+                    blink::WebQuicTransportDelegate* delegate);
   ~QuicDataTransport() override;
 
   void Connect() override;
   // Ultimately just calls CreateQuicDataStream, but returns a wrapper object
   // that implements the Blink interface.
   blink::WebQuicStream* CreateStream() override;
-
-  QuartcStreamInterface* CreateQuicDataStream();
-
-  class Delegate {
-   public:
-    virtual ~Delegate() {}
-    virtual void OnIncomingStream(QuartcStreamInterface* stream) = 0;
-  };
-
-  void SetDelegate(Delegate* delegate) { delegate_ = delegate; }
 
   QuartcSessionInterface* quartc_session() { return quartc_session_.get(); }
 
@@ -48,12 +40,14 @@ class QUIC_EXPORT_PRIVATE QuicDataTransport
 
   void OnConnectionClosed(int error_code, bool from_remote) override;
 
+  QuartcStreamInterface* CreateQuicDataStream();
+
   bool secure_ = false;
   bool closed_ = false;
   bool is_server_ = false;
   std::unique_ptr<QuartcFactoryInterface> quartc_factory_;
   std::unique_ptr<QuartcSessionInterface> quartc_session_;
-  Delegate* delegate_ = nullptr;
+  blink::WebQuicTransportDelegate* delegate_ = nullptr;
 };
 
 }  // namespace net
