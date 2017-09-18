@@ -407,6 +407,8 @@ target(link_target_type, "renderer") {
     "webscrollbarbehavior_impl_mac.mm",
     "webudptransportimpl.cc",
     "webudptransportimpl.h",
+    "webicetransportimpl.cc",
+    "webicetransportimpl.h"
   ]
 
   if (!is_component_build) {

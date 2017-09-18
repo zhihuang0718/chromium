@@ -6,13 +6,13 @@
 
 namespace content {
 
-WebIceTransportImpl::WebIceTransportImpl(P2PSocketDIspatcher* dispatcher) {
+WebIceTransportImpl::WebIceTransportImpl(P2PSocketDispatcher* dispatcher) {
 }
 
 WebIceTransportImpl::~WebIceTransportImpl() {
 }
 
-WebIceTransportImpl::set_quartc_session(net::QuartcSessionInterface* session) {
+void WebIceTransportImpl::set_quartc_session(net::QuartcSessionInterface* session) {
   quartc_session_ = session;
 }
 
@@ -33,7 +33,7 @@ int WebIceTransportImpl::Write(const char* buffer, size_t buf_len) {
 }
 
 void WebIceTransportImpl::OnDataReceived(const net::IPEndPoint& address,
-                                         const std::vecotr<char>& data,
+                                         const std::vector<char>& data,
                                          const base::TimeTicks& timestamp) {
   if (!quartc_session_) {
     LOG(WARNING) << "Received data before hooked up to QuicTransport!";
