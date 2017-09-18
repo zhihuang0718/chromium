@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Google Inc.  All rights reserved.
+ * Copyright (C) 2017 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,56 +28,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef QuicTransport_h
-#define QuicTransport_h
-
-#include <memory>
-
-#include "core/dom/SuspendableObject.h"
-#include "modules/ModulesExport.h"
-#include "modules/quic/UdpTransport.h"
-#include "platform/bindings/ActiveScriptWrappable.h"
-#include "platform/bindings/ScriptWrappable.h"
-#include "platform/heap/GarbageCollected.h"
+#ifndef WebQuicStreamDelegate_h
+#define WebQuicStreamDelegate_h
 
 namespace blink {
 
-class ExceptionState;
-class QuicStream;
-class WebQuicTransport;
-
-class MODULES_EXPORT QuicTransport : public GarbageCollectedFinalized<QuicTransport>,
-                                    public ScriptWrappable,
-                                    public ActiveScriptWrappable<QuicTransport>,
-                                    public SuspendableObject {
-  DEFINE_WRAPPERTYPEINFO();
-  USING_GARBAGE_COLLECTED_MIXIN(QuicTransport);
-
+class WebQuicStreamDelegate {
  public:
-  static QuicTransport* Create(ExecutionContext*, bool, UdpTransport*, ExceptionState&);
-  ~QuicTransport() override;
-
-  void connect(ExceptionState&);
-  QuicStream* createStream(ScriptState*, ExceptionState&);
-
-  // SuspendableObject functions.
-  void ContextDestroyed(ExecutionContext*) override;
-  void Suspend() override;
-  void Resume() override;
-
-  // ScriptWrappable functions.
-  bool HasPendingActivity() const final;
-
-  DECLARE_VIRTUAL_TRACE();
-
- private:
-  QuicTransport(ExecutionContext*, bool, UdpTransport*);
-
-  bool is_server_;
-  Member<UdpTransport> udp_transport_;
-  std::unique_ptr<WebQuicTransport> quic_transport_;
+  virtual ~WebQuicStreamDelegate() {}
+  virtual void OnRead(const char* data, size_t length) = 0;
 };
 
 }  // namespace blink
 
-#endif  // QuicTransport_h
+#endif  // WebQuicStreamDelegate_h

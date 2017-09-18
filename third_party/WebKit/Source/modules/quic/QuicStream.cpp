@@ -28,77 +28,58 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "modules/quic/QuicTransport.h"
+#include "modules/quic/QuicStream.h"
 
 #include "bindings/core/v8/ExceptionMessages.h"
 #include "bindings/core/v8/ExceptionState.h"
 #include "core/dom/ExecutionContext.h"
-#include "modules/quic/QuicStream.h"
 #include "public/platform/Platform.h"
-#include "public/platform/WebQuicTransport.h"
+#include "public/platform/WebQuicStream.h"
 
 namespace blink {
 
-QuicTransport* QuicTransport::Create(ExecutionContext* context,
-                                     bool is_server,
-                                     UdpTransport* transport,
-                                     ExceptionState& exception_state) {
-  if (!transport) {
-    exception_state.ThrowDOMException(
-        kTypeMismatchError,
-        ExceptionMessages::ArgumentNullOrIncorrectType(1, "UdpTransport"));
-    return nullptr;
-  }
-  return new QuicTransport(context, is_server, transport);
-}
-
-QuicTransport::QuicTransport(ExecutionContext* context, bool is_server, UdpTransport* transport)
+QuicStream::QuicStream(ExecutionContext* context, WebQuicStream* quic_stream)
     : SuspendableObject(context),
-      is_server_(is_server),
-      udp_transport_(transport) {
-  quic_transport_ = Platform::Current()->CreateQuicTransport(
-      is_server, transport->web_udp_transport());
+      quic_stream_(quic_stream) {
 }
 
-QuicTransport::~QuicTransport() {
+QuicStream::~QuicStream() {
 }
 
-void QuicTransport::connect(ExceptionState& exception_state) {
-  if (is_server_) {
-    exception_state.ThrowDOMException(kInvalidAccessError, "Can't connect from the server side...");
-  }
-  quic_transport_->Connect();
+void QuicStream::write(NotShared<DOMUint8Array> data) {
+  // Going from unsigned char to char.
+  quic_stream_->Write(reinterpret_cast<const char*>(data.View()->Data()), data.View()->length());
 }
 
-QuicStream* QuicTransport::createStream(ScriptState* script_state, ExceptionState& exception_state) {
-  WebQuicStream* web_stream = quic_transport_->CreateStream();
-  if (!web_stream) {
-    exception_state.ThrowDOMException(kOperationError, "Failed to create QuicStream; is transport connected?");
-  }
-  ExecutionContext* context = ExecutionContext::From(script_state);
-  QuicStream* stream = new QuicStream(context, web_stream);
-  web_stream->SetDelegate(stream);
-  return stream;
+NotShared<DOMUint8Array> QuicStream::read() {
+  NotShared<DOMUint8Array> data(
+     DOMUint8Array::Create(received_data_.data(), received_data_.size()));
+  received_data_.clear();
+  return data;
 }
 
-void QuicTransport::ContextDestroyed(ExecutionContext*) {
+void QuicStream::OnRead(const char* data, size_t length) {
+  received_data_.insert(received_data_.end(), data, data + length);
 }
 
-void QuicTransport::Suspend() {
+void QuicStream::ContextDestroyed(ExecutionContext*) {
+  quic_stream_.reset(nullptr);
+}
+
+void QuicStream::Suspend() {
   // Suspend/resume event queue if we have one.
 }
 
-void QuicTransport::Resume() {
+void QuicStream::Resume() {
 }
 
-bool QuicTransport::HasPendingActivity() const {
+bool QuicStream::HasPendingActivity() const {
   // Prevents us from being garbage collected. Probably good enough for the
   // hackathon.
   return true;
 }
 
-DEFINE_TRACE(QuicTransport) {
-  visitor->Trace(udp_transport_);
+DEFINE_TRACE(QuicStream) {
   SuspendableObject::Trace(visitor);
 }
 

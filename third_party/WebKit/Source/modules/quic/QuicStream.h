@@ -28,37 +28,43 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef QuicTransport_h
-#define QuicTransport_h
+#ifndef QuicStream_h
+#define QuicStream_h
 
 #include <memory>
+#include <vector>
 
 #include "core/dom/SuspendableObject.h"
+#include "core/typed_arrays/ArrayBufferViewHelpers.h"
+#include "core/typed_arrays/DOMTypedArray.h"
 #include "modules/ModulesExport.h"
-#include "modules/quic/UdpTransport.h"
 #include "platform/bindings/ActiveScriptWrappable.h"
 #include "platform/bindings/ScriptWrappable.h"
 #include "platform/heap/GarbageCollected.h"
+#include "public/platform/WebQuicStreamDelegate.h"
 
 namespace blink {
 
 class ExceptionState;
-class QuicStream;
-class WebQuicTransport;
+class WebQuicStream;
 
-class MODULES_EXPORT QuicTransport : public GarbageCollectedFinalized<QuicTransport>,
-                                    public ScriptWrappable,
-                                    public ActiveScriptWrappable<QuicTransport>,
-                                    public SuspendableObject {
+class MODULES_EXPORT QuicStream : public GarbageCollectedFinalized<QuicStream>,
+                                  public ScriptWrappable,
+                                  public ActiveScriptWrappable<QuicStream>,
+                                  public SuspendableObject,
+                                  public WebQuicStreamDelegate {
   DEFINE_WRAPPERTYPEINFO();
-  USING_GARBAGE_COLLECTED_MIXIN(QuicTransport);
+  USING_GARBAGE_COLLECTED_MIXIN(QuicStream);
 
  public:
-  static QuicTransport* Create(ExecutionContext*, bool, UdpTransport*, ExceptionState&);
-  ~QuicTransport() override;
+  QuicStream(ExecutionContext* context, WebQuicStream* quic_stream);
+  ~QuicStream() override;
 
-  void connect(ExceptionState&);
-  QuicStream* createStream(ScriptState*, ExceptionState&);
+  void write(NotShared<DOMUint8Array> data);
+  NotShared<DOMUint8Array> read();
+
+  // WebQuicStreamDelegate implementation.
+  void OnRead(const char* data, size_t length) override;
 
   // SuspendableObject functions.
   void ContextDestroyed(ExecutionContext*) override;
@@ -71,13 +77,11 @@ class MODULES_EXPORT QuicTransport : public GarbageCollectedFinalized<QuicTransp
   DECLARE_VIRTUAL_TRACE();
 
  private:
-  QuicTransport(ExecutionContext*, bool, UdpTransport*);
-
-  bool is_server_;
-  Member<UdpTransport> udp_transport_;
-  std::unique_ptr<WebQuicTransport> quic_transport_;
+  std::unique_ptr<WebQuicStream> quic_stream_;
+  // Buffer of data that's been received but not yet read by JS.
+  std::vector<uint8_t> received_data_;
 };
 
 }  // namespace blink
 
-#endif  // QuicTransport_h
+#endif  // QuicStream_h

@@ -52,6 +52,53 @@ void QuicDataTransport::Connect() {
   quartc_session_->StartCryptoHandshake();
 }
 
+class QuicStreamDelegateAdapter : public QuartcStreamInterface::Delegate {
+ public:
+  QuicStreamDelegateAdapter(blink::WebQuicStreamDelegate* web_quic_stream_delegate) :
+    web_quic_stream_delegate_(web_quic_stream_delegate) {
+    }
+  ~QuicStreamDelegateAdapter() override {}
+
+ private:
+  void OnReceived(QuartcStreamInterface* stream,
+                          const char* data,
+                          size_t size) override {
+    web_quic_stream_delegate_->OnRead(data, size);
+  }
+  void OnClose(QuartcStreamInterface* stream) override {}
+  void OnCanWrite(QuartcStreamInterface* stream) override {}
+
+  blink::WebQuicStreamDelegate* web_quic_stream_delegate_;
+};
+
+class QuicStreamAdapter : public blink::WebQuicStream {
+ public:
+  QuicStreamAdapter(QuartcStreamInterface* quartc_stream) :
+    quartc_stream_(quartc_stream) {
+  }
+
+  void Write(const char* data, size_t length) override {
+    quartc_stream_->Write(data, length, QuartcStreamInterface::WriteParameters());
+  }
+
+  void SetDelegate(blink::WebQuicStreamDelegate* delegate) override {
+    delegate_adapter_.reset(new QuicStreamDelegateAdapter(delegate));
+    quartc_stream_->SetDelegate(delegate_adapter_.get());
+  }
+
+ private:
+  std::unique_ptr<QuartcStreamInterface> quartc_stream_;
+  std::unique_ptr<QuicStreamDelegateAdapter> delegate_adapter_;
+};
+
+blink::WebQuicStream* QuicDataTransport::CreateStream() {
+  QuartcStreamInterface* stream = CreateQuicDataStream();
+  if (!stream) {
+    return nullptr;
+  }
+  return new QuicStreamAdapter(CreateQuicDataStream());
+}
+
 // Delegate overrides.
 void QuicDataTransport::OnCryptoHandshakeComplete() {
   LOG(INFO) << "Crypto handshake is completed.";

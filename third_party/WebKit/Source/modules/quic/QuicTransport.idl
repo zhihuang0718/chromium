@@ -36,5 +36,6 @@
     Exposed=(Window,Worker),
     DependentLifetime
 ] interface QuicTransport {
-    [RaisesException] void Connect();
+    [RaisesException] void connect();
+    [CallWith=ScriptState, RaisesException] QuicStream createStream();
 };

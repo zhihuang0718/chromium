@@ -31,6 +31,7 @@
 #ifndef WebQuicTransport_h
 #define WebQuicTransport_h
 
+#include "WebQuicStream.h"
 #include "WebString.h"
 
 namespace blink {
@@ -40,6 +41,7 @@ class WebQuicTransport {
   virtual ~WebQuicTransport() {}
 
   virtual void Connect() = 0;
+  virtual WebQuicStream* CreateStream() = 0;
 };
 
 }  // namespace blink

@@ -9,6 +9,7 @@
 #include "net/quic/quartc/quartc_factory_interface.h"
 #include "net/quic/quartc/quartc_session_interface.h"
 #include "net/quic/quartc/quartc_stream_interface.h"
+#include "third_party/WebKit/public/platform/WebQuicStream.h"
 #include "third_party/WebKit/public/platform/WebQuicTransport.h"
 
 namespace net {
@@ -23,6 +24,9 @@ class QUIC_EXPORT_PRIVATE QuicDataTransport
   ~QuicDataTransport() override;
 
   void Connect() override;
+  // Ultimately just calls CreateQuicDataStream, but returns a wrapper object
+  // that implements the Blink interface.
+  blink::WebQuicStream* CreateStream() override;
 
   QuartcStreamInterface* CreateQuicDataStream();
 
