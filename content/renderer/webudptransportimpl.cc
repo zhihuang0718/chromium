@@ -1,7 +1,6 @@
 // Copyright (c) 2017 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-
 #include "base/logging.h"
 #include "base/strings/string_split.h"
 #include "content/renderer/webudptransportimpl.h"
@@ -85,7 +84,7 @@ int WebUdpTransportImpl::Write(const char* buffer, size_t buf_len) {
 void WebUdpTransportImpl::OnOpen(const net::IPEndPoint& local_address,
                     const net::IPEndPoint& remote_address) {
   local_address_ = local_address;
-} 
+}
 
 void WebUdpTransportImpl::OnDataReceived(const net::IPEndPoint& address,
                             const std::vector<char>& data,

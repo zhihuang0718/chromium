@@ -104,6 +104,7 @@ class WebFileSystem;
 class WebFileUtilities;
 class WebGestureCurve;
 class WebGraphicsContext3DProvider;
+class WebIceTransport;
 class WebIDBFactory;
 class WebImageCaptureFrameGrabber;
 class WebMIDIAccessor;
@@ -741,12 +742,15 @@ class BLINK_PLATFORM_EXPORT Platform {
 
   // QUIC-related.
 
+  virtual std::unique_ptr<WebIceTransport>
+  CreateIceTransport();
+
   virtual std::unique_ptr<WebUdpTransport>
   CreateUdpTransport();
 
   virtual std::unique_ptr<WebQuicTransport>
   CreateQuicTransport(bool is_server, WebUdpTransport* udp_transport, WebQuicTransportDelegate* delegate);
-  
+
  protected:
   Platform();
   virtual ~Platform();

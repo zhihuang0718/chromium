@@ -228,6 +228,7 @@ modules_idl_files =
                     "push_messaging/PushMessageData.idl",
                     "push_messaging/PushSubscription.idl",
                     "push_messaging/PushSubscriptionOptions.idl",
+                    "quic/IceTransport.idl",
                     "quic/QuicStream.idl",
                     "quic/QuicStreamEvent.idl",
                     "quic/QuicTransport.idl",

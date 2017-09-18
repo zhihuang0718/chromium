@@ -6,6 +6,8 @@ import("//third_party/WebKit/Source/modules/modules.gni")
 
 blink_modules_sources("quic") {
   sources = [
+    "IceTransport.cpp",
+    "IceTranport.h",
     "QuicStream.cpp",
     "QuicStream.h",
     "QuicStreamEvent.cpp",

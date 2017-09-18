@@ -52,6 +52,7 @@
 #include "public/platform/WebFeaturePolicy.h"
 #include "public/platform/WebGestureCurve.h"
 #include "public/platform/WebGraphicsContext3DProvider.h"
+#include "public/platform/WebIceTransport.h"
 #include "public/platform/WebImageCaptureFrameGrabber.h"
 #include "public/platform/WebMediaRecorderHandler.h"
 #include "public/platform/WebMediaStreamCenter.h"
@@ -286,6 +287,11 @@ std::unique_ptr<WebFeaturePolicy> Platform::CreateFeaturePolicy(
 std::unique_ptr<WebFeaturePolicy> Platform::DuplicateFeaturePolicyWithOrigin(
     const WebFeaturePolicy&,
     const WebSecurityOrigin&) {
+  return nullptr;
+}
+
+std::unique_ptr<WebIceTransport> Platform::CreateIceTransport(
+) {
   return nullptr;
 }
 

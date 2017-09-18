@@ -36,7 +36,7 @@ class WebUdpTransportImpl : public blink::WebUdpTransport,
   // net::QuartcSessionInterface::PacketTransport implementation.
   bool CanWrite() override;
   int Write(const char* buffer, size_t buf_len) override;
-  
+
   // P2PSocketClientDelegate overrides.
   void OnOpen(const net::IPEndPoint& local_address,
                       const net::IPEndPoint& remote_address) override;
