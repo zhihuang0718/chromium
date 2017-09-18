@@ -92,6 +92,7 @@ void QuicTransport::OnIncomingStream(WebQuicStream* web_stream) {
   DCHECK(GetExecutionContext()->IsContextThread());
 
   QuicStream* stream = new QuicStream(GetExecutionContext(), web_stream);
+  web_stream->SetDelegate(stream);
   ScheduleDispatchEvent(QuicStreamEvent::Create(EventTypeNames::stream,
                                                 false, false, stream));
 }
