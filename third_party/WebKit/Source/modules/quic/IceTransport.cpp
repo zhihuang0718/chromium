@@ -87,7 +87,8 @@ ExecutionContext* IceTransport::GetExecutionContext() const {
 }
 
 void IceTransport::ContextDestroyed(ExecutionContext*) {
-  transport_.reset(nullptr);
+  // Causes crash if this is called before QuicTrasnport::ContextDestroyed...
+  //transport_.reset(nullptr);
 }
 
 void IceTransport::Suspend() {

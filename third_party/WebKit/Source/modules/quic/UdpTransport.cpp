@@ -65,7 +65,8 @@ WebUdpTransport* UdpTransport::web_udp_transport() {
 }
 
 void UdpTransport::ContextDestroyed(ExecutionContext*) {
-  transport_.reset(nullptr);
+  // Causes crash if this is called before QuicTrasnport::ContextDestroyed...
+  // transport_.reset(nullptr);
 }
 
 void UdpTransport::Suspend() {

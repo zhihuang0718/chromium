@@ -81,6 +81,10 @@ class QuicStreamAdapter : public blink::WebQuicStream {
     quartc_stream_(quartc_stream) {
   }
 
+  ~QuicStreamAdapter() override {
+    quartc_stream_->Close();
+  }
+
   void Write(const char* data, size_t length) override {
     quartc_stream_->Write(data, length, QuartcStreamInterface::WriteParameters());
   }
@@ -91,7 +95,7 @@ class QuicStreamAdapter : public blink::WebQuicStream {
   }
 
  private:
-  std::unique_ptr<QuartcStreamInterface> quartc_stream_;
+  QuartcStreamInterface* quartc_stream_;
   std::unique_ptr<QuicStreamDelegateAdapter> delegate_adapter_;
 };
 
