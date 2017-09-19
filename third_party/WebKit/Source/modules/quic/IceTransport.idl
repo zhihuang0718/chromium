@@ -34,9 +34,7 @@
     ConstructorCallWith=ExecutionContext,
     Exposed=(Window,Worker),
     DependentLifetime
-] interface IceTransport {
-    bool ready_to_send();
-    void startGathering();
-    // TODO: How to exchange candidates?
-    //DOMString getLocalCandidates();
+] interface IceTransport : EventTarget {
+    [RaisesException] addRemoteCandidate(DOMString candidate);
+    attribute EventHandler onicecandidate;
 };

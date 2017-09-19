@@ -248,12 +248,20 @@ class CONTENT_EXPORT RendererBlinkPlatformImpl : public BlinkPlatformImpl {
 
   void RequestPurgeMemory() override;
 
+  std::unique_ptr<blink::WebIceTransport>
+  CreateIceTransport(blink::WebIceTransportDelegate* delegate) override;
+
   std::unique_ptr<blink::WebUdpTransport>
   CreateUdpTransport() override;
 
   std::unique_ptr<blink::WebQuicTransport>
   CreateQuicTransport(bool is_server,
                       blink::WebUdpTransport* udp_transport,
+                      blink::WebQuicTransportDelegate* delegate) override;
+
+  std::unique_ptr<blink::WebQuicTransport>
+  CreateQuicTransport(bool is_server,
+                      blink::WebIceTransport* ice_transport,
                       blink::WebQuicTransportDelegate* delegate) override;
 
   PossiblyAssociatedInterfacePtr<mojom::URLLoaderFactory>

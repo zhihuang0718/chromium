@@ -32,7 +32,11 @@
 
 #include "bindings/core/v8/ExceptionState.h"
 #include "core/dom/ExecutionContext.h"
+#include "modules/peerconnection/RTCIceCandidate.h"
+#include "modules/peerconnection/RTCPeerConnectionIceEvent.h"
+#include "modules/peerconnection/RTCIceCandidateInit.h"
 #include "public/platform/Platform.h"
+#include "public/platform/WebRTCICECandidate.h"
 #include "public/platform/WebIceTransport.h"
 
 namespace blink {
@@ -42,31 +46,42 @@ IceTransport* IceTransport::Create(ExecutionContext* context) {
 }
 
 IceTransport::IceTransport(ExecutionContext* context)
-    : SuspendableObject(context) {
-  // TODO: implement platform stuff
-  transport_ = Platform::Current()->CreateIceTransport();
+    : SuspendableObject(context),
+      dispatch_scheduled_event_runner_(
+          AsyncMethodRunner<IceTransport>::Create(
+              this,
+              &IceTransport::DispatchScheduledEvent)) {
+  transport_ = Platform::Current()->CreateIceTransport(this);
 }
 
 IceTransport::~IceTransport() {
 }
 
-bool IceTransport::ready_to_send() const {
-  // TODO: Set based on P2PTransportChannel::OnReadyToSend
-  return true;
+void IceTransport::addRemoteCandidate(const String& candidate, ExceptionState&) {
+  transport_->AddRemoteCandidate(candidate);
 }
-
-void IceTransport::startGathering() {
-  // TODO: P2PTransportChannel::MaybeStartGathering();
-}
-
-/*
-DOMString getLocalCandidates() {
-  // TODO
-}
-*/
 
 WebIceTransport* IceTransport::web_ice_transport() {
   return transport_.get();
+}
+
+void IceTransport::OnCandidateGathered(const WebString& candidate_string) {
+  // Just re-use the PeerConnection ICE candidate event in the interest of
+  // time.
+  DCHECK(GetExecutionContext()->IsContextThread());
+  WebRTCICECandidate web_candidate;
+  web_candidate.Initialize(candidate_string, "ice", 0);
+  RTCIceCandidate* candidate = RTCIceCandidate::Create(web_candidate);
+  ScheduleDispatchEvent(
+      RTCPeerConnectionIceEvent::Create(false, false, candidate));
+}
+
+const AtomicString& IceTransport::InterfaceName() const {
+  return EventTargetNames::IceTransport;
+}
+
+ExecutionContext* IceTransport::GetExecutionContext() const {
+  return SuspendableObject::GetExecutionContext();
 }
 
 void IceTransport::ContextDestroyed(ExecutionContext*) {
@@ -74,11 +89,11 @@ void IceTransport::ContextDestroyed(ExecutionContext*) {
 }
 
 void IceTransport::Suspend() {
-  // Suspend/resume event queue if we have one.
+  dispatch_scheduled_event_runner_->Suspend();
 }
 
 void IceTransport::Resume() {
-
+  dispatch_scheduled_event_runner_->Resume();
 }
 
 bool IceTransport::HasPendingActivity() const {
@@ -87,7 +102,27 @@ bool IceTransport::HasPendingActivity() const {
   return true;
 }
 
+void IceTransport::ScheduleDispatchEvent(Event* event) {
+  scheduled_events_.push_back(event);
+  dispatch_scheduled_event_runner_->RunAsync();
+}
+
+void IceTransport::DispatchScheduledEvent() {
+  HeapVector<Member<Event>> events;
+  events.swap(scheduled_events_);
+
+  HeapVector<Member<Event>>::iterator it = events.begin();
+  for (; it != events.end(); ++it) {
+    DispatchEvent(it->Release());
+  }
+
+  events.clear();
+}
+
 DEFINE_TRACE(IceTransport) {
+  visitor->Trace(dispatch_scheduled_event_runner_);
+  visitor->Trace(scheduled_events_);
+  EventTargetWithInlineData::Trace(visitor);
   SuspendableObject::Trace(visitor);
 }
 

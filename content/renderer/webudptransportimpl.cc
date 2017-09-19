@@ -18,6 +18,7 @@ WebUdpTransportImpl::WebUdpTransportImpl(P2PSocketDispatcher* dispatcher) :
 
 WebUdpTransportImpl::~WebUdpTransportImpl() {
   socket_->Close();
+  network_manager_->StopUpdating();
 }
 
 void WebUdpTransportImpl::set_quartc_session(net::QuartcSessionInterface* session) {

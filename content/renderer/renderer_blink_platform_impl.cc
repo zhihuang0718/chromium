@@ -69,6 +69,7 @@
 #include "content/renderer/media_capture_from_element/html_video_element_capturer_source.h"
 #include "content/renderer/media_recorder/media_recorder_handler.h"
 #include "content/renderer/mojo/blink_interface_provider_impl.h"
+#include "content/renderer/p2p/ice_transport.h"
 #include "content/renderer/render_thread_impl.h"
 #include "content/renderer/renderer_clipboard_delegate.h"
 #include "content/renderer/webclipboard_impl.h"
@@ -98,6 +99,7 @@
 #include "third_party/WebKit/public/platform/WebAudioLatencyHint.h"
 #include "third_party/WebKit/public/platform/WebBlobRegistry.h"
 #include "third_party/WebKit/public/platform/WebFileInfo.h"
+#include "third_party/WebKit/public/platform/WebIceTransportDelegate.h"
 #include "third_party/WebKit/public/platform/WebMediaRecorderHandler.h"
 #include "third_party/WebKit/public/platform/WebMediaStreamCenter.h"
 #include "third_party/WebKit/public/platform/WebMediaStreamCenterClient.h"
@@ -1348,6 +1350,12 @@ std::unique_ptr<blink::WebUdpTransport> RendererBlinkPlatformImpl::CreateUdpTran
   return base::MakeUnique<WebUdpTransportImpl>(dispatcher);
 }
 
+std::unique_ptr<blink::WebIceTransport> RendererBlinkPlatformImpl::CreateIceTransport(blink::WebIceTransportDelegate* delegate) {
+  RenderThreadImpl* render_thread = RenderThreadImpl::current();
+  P2PSocketDispatcher* dispatcher = render_thread->p2p_socket_dispatcher();
+  return base::MakeUnique<IceTransport>(dispatcher, delegate);
+}
+
 std::unique_ptr<blink::WebQuicTransport> RendererBlinkPlatformImpl::CreateQuicTransport(
     bool is_server,
     blink::WebUdpTransport* udp_transport,
@@ -1357,6 +1365,18 @@ std::unique_ptr<blink::WebQuicTransport> RendererBlinkPlatformImpl::CreateQuicTr
   auto quic_transport = base::MakeUnique<net::QuicDataTransport>(
       is_server, udp_transport_impl, delegate);
   udp_transport_impl->set_quartc_session(quic_transport->quartc_session());
+  return quic_transport;
+}
+
+std::unique_ptr<blink::WebQuicTransport> RendererBlinkPlatformImpl::CreateQuicTransport(
+    bool is_server,
+    blink::WebIceTransport* ice_transport,
+    blink::WebQuicTransportDelegate* delegate) {
+  // The static_cast is a hack but this is a hackathon.
+  IceTransport* ice_transport_impl = static_cast<IceTransport*>(ice_transport);
+  auto quic_transport = base::MakeUnique<net::QuicDataTransport>(
+      is_server, ice_transport_impl, delegate);
+  ice_transport_impl->set_quartc_session(quic_transport->quartc_session());
   return quic_transport;
 }
 

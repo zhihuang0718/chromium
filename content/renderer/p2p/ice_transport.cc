@@ -4,29 +4,66 @@
 
 #include "content/renderer/p2p/ice_transport.h"
 
+#include "base/logging.h"
 #include "base/memory/ptr_util.h"
 #include "content/renderer/p2p/ipc_network_manager.h"
 #include "content/renderer/p2p/ipc_socket_factory.h"
 #include "content/renderer/render_thread_impl.h"
+#include "jingle/glue/thread_wrapper.h"
+#include "third_party/webrtc/pc/webrtcsdp.h"
 
 namespace content {
 
-IceTransport::IceTransport(P2PSocketDispatcher* p2p_socket_dispatcher) {
+IceTransport::IceTransport(P2PSocketDispatcher* p2p_socket_dispatcher, blink::WebIceTransportDelegate* delegate) :
+ delegate_(delegate) {
+  DCHECK(delegate);
+  
+  // P2PTransportChannel needs the current thread to be wrapped by an
+  // rtc::Thread.
+  jingle_glue::JingleThreadWrapper::EnsureForCurrentMessageLoop();
+  jingle_glue::JingleThreadWrapper::current()->set_send_allowed(true);
+
   network_manager_.reset(new IpcNetworkManager(p2p_socket_dispatcher));
+  network_manager_->StartUpdating();
   socket_factory_.reset(new IpcPacketSocketFactory(p2p_socket_dispatcher));
   port_allocator_.reset(new cricket::BasicPortAllocator(network_manager_.get(),
                                                         socket_factory_.get()));
 
   ice_transport_channel_ = base::MakeUnique<cricket::P2PTransportChannel>(
       "ice", 1, port_allocator_.get());
+  // Hack for the hackathon. In reality we'd expose these as JS APIs.
+  LOG(INFO) << "Setting ICE credentials";
+  ice_transport_channel_->SetIceCredentials("foo", "bar");
+  LOG(INFO) << "Setting remote ICE credentials";
+  ice_transport_channel_->SetRemoteIceCredentials("foo", "bar");
+  LOG(INFO) << "About to start gathering.";
+  ice_transport_channel_->MaybeStartGathering();
 
   ice_transport_channel_->SignalReadPacket.connect(this,
                                                    &IceTransport::OnReadPacket);
   ice_transport_channel_->SignalCandidateGathered.connect(
       this, &IceTransport::OnCandidateGathered);
+  ice_transport_channel_->SignalWritableState.connect(
+      this, &IceTransport::OnWritableState);
+  LOG(INFO) << "Completed construction of content::IceTransport";
 }
 
-IceTransport::~IceTransport(){};
+IceTransport::~IceTransport(){
+  network_manager_->StopUpdating();
+}
+
+void IceTransport::set_quartc_session(net::QuartcSessionInterface* session) {
+  quartc_session_ = session;
+}
+
+void IceTransport::AddRemoteCandidate(const blink::WebString& candidate_string) {
+  cricket::Candidate candidate;
+  if (!webrtc::SdpDeserializeCandidate("ice", candidate_string.Utf8(), &candidate, nullptr)) {
+    LOG(ERROR) << "Failed to deserialize candidate.";
+    return;
+  }
+  ice_transport_channel_->AddRemoteCandidate(candidate);
+}
 
 // PacketTransport overrides.
 bool IceTransport::CanWrite() {
@@ -50,13 +87,27 @@ void IceTransport::OnReadPacket(rtc::PacketTransportInternal* transport,
                                 size_t data_size,
                                 const rtc::PacketTime& packet_time,
                                 int flags) {
-  DCHECK(delegate_);
-  delegate_->OnReadPacket(data, data_size);
+  if (!quartc_session_) {
+    LOG(WARNING) << "Received data before hooked up to QuicTransport!";
+    return;
+  }
+  quartc_session_->OnTransportReceived(data, data_size);
 }
 
 void IceTransport::OnCandidateGathered(
     cricket::IceTransportInternal* ice_transport,
     const cricket::Candidate& candidate) {
-  LOG(INFO) << "Candidate gathered:" << candidate.ToString();
+  DCHECK(delegate_);
+  std::string serialized = webrtc::SdpSerializeCandidate(candidate);
+  LOG(INFO) << "Candidate gathered: " << serialized;
+  delegate_->OnCandidateGathered(blink::WebString::FromUTF8(serialized));
 }
+
+void IceTransport::OnWritableState(rtc::PacketTransportInternal* ice_transport) {
+  if (ice_transport->writable()) {
+    LOG(INFO) << "We're writable, yo";
+    quartc_session_->OnTransportCanWrite();
+  }
+}
+
 }  // namespace content

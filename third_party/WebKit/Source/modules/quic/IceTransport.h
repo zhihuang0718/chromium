@@ -32,20 +32,24 @@
 #define IceTransport_h
 
 #include "core/dom/SuspendableObject.h"
+#include "modules/EventTargetModules.h"
 #include "modules/ModulesExport.h"
+#include "platform/AsyncMethodRunner.h"
 #include "platform/bindings/ActiveScriptWrappable.h"
 #include "platform/bindings/ScriptWrappable.h"
 #include "platform/heap/GarbageCollected.h"
 #include "platform/wtf/text/WTFString.h"
+#include "public/platform/WebIceTransportDelegate.h"
 
 namespace blink {
 
+class ExceptionState;
 class WebIceTransport;
 
-class MODULES_EXPORT IceTransport : public GarbageCollectedFinalized<IceTransport>,
-                                    public ScriptWrappable,
+class MODULES_EXPORT IceTransport : public EventTargetWithInlineData,
                                     public ActiveScriptWrappable<IceTransport>,
-                                    public SuspendableObject {
+                                    public SuspendableObject,
+                                    public WebIceTransportDelegate {
   DEFINE_WRAPPERTYPEINFO();
   USING_GARBAGE_COLLECTED_MIXIN(IceTransport);
 
@@ -54,12 +58,19 @@ class MODULES_EXPORT IceTransport : public GarbageCollectedFinalized<IceTranspor
   ~IceTransport() override;
 
   // Implementation of IDL interface.
-  bool ready_to_send() const;
-  void startGathering();
-  //DOMString getLocalCandidates();
+  void addRemoteCandidate(const String& candidate, ExceptionState&);
+
+  DEFINE_ATTRIBUTE_EVENT_LISTENER(icecandidate);
 
   // Methods used by QuicTransport.
   WebIceTransport* web_ice_transport();
+
+  // WebIceTransportDelegate.
+  void OnCandidateGathered(const WebString& candidate) override;
+
+  // EventTarget
+  const AtomicString& InterfaceName() const override;
+  ExecutionContext* GetExecutionContext() const override;
 
   // SuspendableObject functions.
   void ContextDestroyed(ExecutionContext*) override;
@@ -74,7 +85,13 @@ class MODULES_EXPORT IceTransport : public GarbageCollectedFinalized<IceTranspor
  private:
   explicit IceTransport(ExecutionContext*);
 
+  void ScheduleDispatchEvent(Event*);
+  void DispatchScheduledEvent();
+
   std::unique_ptr<WebIceTransport> transport_;
+
+  Member<AsyncMethodRunner<IceTransport>> dispatch_scheduled_event_runner_;
+  HeapVector<Member<Event>> scheduled_events_;
 };
 
 }  // namespace blink

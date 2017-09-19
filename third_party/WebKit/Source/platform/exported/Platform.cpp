@@ -290,8 +290,7 @@ std::unique_ptr<WebFeaturePolicy> Platform::DuplicateFeaturePolicyWithOrigin(
   return nullptr;
 }
 
-std::unique_ptr<WebIceTransport> Platform::CreateIceTransport(
-) {
+std::unique_ptr<WebIceTransport> Platform::CreateIceTransport(WebIceTransportDelegate* delegate) {
   return nullptr;
 }
 

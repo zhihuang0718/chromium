@@ -28,19 +28,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef WebIceTransport_h
-#define WebIceTransport_h
+#ifndef WebIceTransportDelegate_h
+#define WebIceTransportDelegate_h
 
-#include "WebIceTransportDelegate.h"
+#include "WebString.h"
 
 namespace blink {
 
-class WebIceTransport {
+class WebIceTransportDelegate {
  public:
-  virtual ~WebIceTransport() {}
-  virtual void AddRemoteCandidate(const WebString& candidate) = 0;
+  virtual ~WebIceTransportDelegate() {}
+  virtual void OnCandidateGathered(const WebString& candidate) = 0;
 };
 
 }
 
-#endif  // WebIceTransport_h
+#endif  // WebIceTransportDelegate_h

@@ -35,6 +35,7 @@
     "modules/presentation/PresentationConnection",
     "modules/presentation/PresentationConnectionList",
     "modules/presentation/PresentationRequest",
+    "modules/quic/IceTransport",
     "modules/quic/QuicTransport",
     "modules/remoteplayback/RemotePlayback",
     "modules/screen_orientation/ScreenOrientation",
