@@ -116,17 +116,18 @@ QuicStream* QuicTransport::createStream(ScriptState* script_state, ExceptionStat
   QuicStream* stream = new QuicStream(context, web_stream);
   stream->SuspendIfNeeded();
   web_stream->SetDelegate(stream);
+  quic_streams_.push_back(stream);
   return stream;
 }
 
 void QuicTransport::OnIncomingStream(WebQuicStream* web_stream) {
-  DCHECK(GetExecutionContext()->IsContextThread());
-
-  QuicStream* stream = new QuicStream(GetExecutionContext(), web_stream);
+  ExecutionContext* context = GetExecutionContext();
+  QuicStream* stream = new QuicStream(context, web_stream);
   stream->SuspendIfNeeded();
   web_stream->SetDelegate(stream);
   ScheduleDispatchEvent(QuicStreamEvent::Create(EventTypeNames::stream,
                                                 false, false, stream));
+  quic_streams_.push_back(stream);
 }
 
 const AtomicString& QuicTransport::InterfaceName() const {
@@ -174,6 +175,7 @@ void QuicTransport::DispatchScheduledEvent() {
 DEFINE_TRACE(QuicTransport) {
   visitor->Trace(udp_transport_);
   visitor->Trace(ice_transport_);
+  visitor->Trace(quic_streams_);
   visitor->Trace(dispatch_scheduled_event_runner_);
   visitor->Trace(scheduled_events_);
   EventTargetWithInlineData::Trace(visitor);

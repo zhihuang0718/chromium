@@ -56,47 +56,52 @@ void QuicDataTransport::Connect() {
   quartc_session_->StartCryptoHandshake();
 }
 
-class QuicStreamDelegateAdapter : public QuartcStreamInterface::Delegate {
+class QuicStreamAdapter : public blink::WebQuicStream,
+                          public QuartcStreamInterface::Delegate {
  public:
-  QuicStreamDelegateAdapter(blink::WebQuicStreamDelegate* web_quic_stream_delegate) :
-    web_quic_stream_delegate_(web_quic_stream_delegate) {
+  QuicStreamAdapter(QuartcStreamInterface* quartc_stream) :
+    quartc_stream_(quartc_stream) {
+    quartc_stream_->SetDelegate(this);
+  }
+
+  ~QuicStreamAdapter() override {
+    if (quartc_stream_) {
+      quartc_stream_->Close();
+    } else {
+      LOG(INFO) << "In ~QuicStreamAdapter but stream already closed.";
     }
-  ~QuicStreamDelegateAdapter() override {}
+  }
+
+  void Write(const char* data, size_t length) override {
+    if (quartc_stream_) {
+      quartc_stream_->Write(data, length, QuartcStreamInterface::WriteParameters());
+    } else {
+      LOG(WARNING) << "Can't write, stream already closed.";
+    }
+  }
+
+  void SetDelegate(blink::WebQuicStreamDelegate* delegate) override {
+    web_quic_stream_delegate_ = delegate;
+  }
 
  private:
   void OnReceived(QuartcStreamInterface* stream,
                           const char* data,
                           size_t size) override {
-    web_quic_stream_delegate_->OnRead(data, size);
+    if (web_quic_stream_delegate_) {
+      web_quic_stream_delegate_->OnRead(data, size);
+    } else {
+      LOG(WARNING) << "Received data before WebQuicStreamDelegate hooked up.";
+    }
   }
-  void OnClose(QuartcStreamInterface* stream) override {}
+  void OnClose(QuartcStreamInterface* stream) override {
+    LOG(INFO) << "Got close event from QuartcStreamInterface";
+    quartc_stream_ = nullptr;
+  }
   void OnCanWrite(QuartcStreamInterface* stream) override {}
 
-  blink::WebQuicStreamDelegate* web_quic_stream_delegate_;
-};
-
-class QuicStreamAdapter : public blink::WebQuicStream {
- public:
-  QuicStreamAdapter(QuartcStreamInterface* quartc_stream) :
-    quartc_stream_(quartc_stream) {
-  }
-
-  ~QuicStreamAdapter() override {
-    quartc_stream_->Close();
-  }
-
-  void Write(const char* data, size_t length) override {
-    quartc_stream_->Write(data, length, QuartcStreamInterface::WriteParameters());
-  }
-
-  void SetDelegate(blink::WebQuicStreamDelegate* delegate) override {
-    delegate_adapter_.reset(new QuicStreamDelegateAdapter(delegate));
-    quartc_stream_->SetDelegate(delegate_adapter_.get());
-  }
-
- private:
   QuartcStreamInterface* quartc_stream_;
-  std::unique_ptr<QuicStreamDelegateAdapter> delegate_adapter_;
+  blink::WebQuicStreamDelegate* web_quic_stream_delegate_ = nullptr;
 };
 
 blink::WebQuicStream* QuicDataTransport::CreateStream() {

@@ -95,6 +95,7 @@ class MODULES_EXPORT QuicTransport : public EventTargetWithInlineData,
   bool is_server_;
   Member<UdpTransport> udp_transport_;
   Member<IceTransport> ice_transport_;
+  HeapVector<Member<QuicStream>> quic_streams_;
   std::unique_ptr<WebQuicTransport> quic_transport_;
 
   Member<AsyncMethodRunner<QuicTransport>> dispatch_scheduled_event_runner_;
