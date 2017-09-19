@@ -35,6 +35,6 @@
     Exposed=(Window,Worker),
     DependentLifetime
 ] interface IceTransport : EventTarget {
-    [RaisesException] addRemoteCandidate(DOMString candidate);
+    [RaisesException] void addRemoteCandidate(DOMString candidate);
     attribute EventHandler onicecandidate;
 };

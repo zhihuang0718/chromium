@@ -9,6 +9,7 @@
 #include "content/renderer/p2p/ipc_network_manager.h"
 #include "content/renderer/p2p/ipc_socket_factory.h"
 #include "content/renderer/render_thread_impl.h"
+#include "crypto/random.h"
 #include "jingle/glue/thread_wrapper.h"
 #include "third_party/webrtc/pc/webrtcsdp.h"
 
@@ -35,6 +36,10 @@ IceTransport::IceTransport(P2PSocketDispatcher* p2p_socket_dispatcher, blink::We
   ice_transport_channel_ = base::MakeUnique<cricket::P2PTransportChannel>(
       "ice", 1, port_allocator_.get());
   // Hack for the hackathon. In reality we'd expose these as JS APIs.
+  ice_transport_channel_->SetIceRole(cricket::ICEROLE_CONTROLLING);
+  uint64_t tiebreaker;
+  crypto::RandBytes(&tiebreaker, sizeof(tiebreaker));
+  ice_transport_channel_->SetIceTiebreaker(tiebreaker);
   ice_transport_channel_->SetIceCredentials("foo", "bar");
   ice_transport_channel_->SetRemoteIceCredentials("foo", "bar");
   ice_transport_channel_->MaybeStartGathering();
