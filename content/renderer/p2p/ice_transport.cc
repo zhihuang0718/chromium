@@ -25,7 +25,6 @@ IceTransport::IceTransport(P2PSocketDispatcher* p2p_socket_dispatcher, blink::We
   jingle_glue::JingleThreadWrapper::current()->set_send_allowed(true);
 
   network_manager_.reset(new IpcNetworkManager(p2p_socket_dispatcher));
-  network_manager_->StartUpdating();
   socket_factory_.reset(new IpcPacketSocketFactory(p2p_socket_dispatcher));
   port_allocator_.reset(new cricket::BasicPortAllocator(network_manager_.get(),
                                                         socket_factory_.get()));
@@ -55,7 +54,6 @@ IceTransport::IceTransport(P2PSocketDispatcher* p2p_socket_dispatcher, blink::We
 }
 
 IceTransport::~IceTransport(){
-  network_manager_->StopUpdating();
 }
 
 void IceTransport::set_quartc_session(net::QuartcSessionInterface* session) {

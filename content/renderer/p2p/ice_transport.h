@@ -61,10 +61,10 @@ class CONTENT_EXPORT IceTransport
 
   void OnWritableState(rtc::PacketTransportInternal* ice_transport);
 
-  std::unique_ptr<cricket::P2PTransportChannel> ice_transport_channel_;
+  std::unique_ptr<rtc::PacketSocketFactory> socket_factory_;
   std::unique_ptr<cricket::BasicPortAllocator> port_allocator_;
   std::unique_ptr<rtc::NetworkManager> network_manager_;
-  std::unique_ptr<rtc::PacketSocketFactory> socket_factory_;
+  std::unique_ptr<cricket::P2PTransportChannel> ice_transport_channel_;
 
   net::QuartcSessionInterface* quartc_session_ = nullptr;
   blink::WebIceTransportDelegate* delegate_ = nullptr;
