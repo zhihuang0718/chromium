@@ -103,14 +103,6 @@ void QuicTransport::connect(ExceptionState& exception_state) {
     return;
   }
 
-  if (ice_transport_) {
-    // TODO: wait for ice to be writable and then Connect.
-    exception_state.ThrowDOMException(
-        kNotSupportedError,
-        "QuicTransport::connect with ice_transport_ is not implemented.");
-    return;
-  }
-
   quic_transport_->Connect();
 }
 

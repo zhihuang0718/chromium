@@ -44,6 +44,8 @@ IceTransport::IceTransport(P2PSocketDispatcher* p2p_socket_dispatcher, blink::We
   ice_transport_channel_->SetRemoteIceCredentials("foo", "bar");
   ice_transport_channel_->MaybeStartGathering();
 
+  ice_transport_channel_->SignalRoleConflict.connect(this,
+                                                   &IceTransport::OnRoleConflict);
   ice_transport_channel_->SignalReadPacket.connect(this,
                                                    &IceTransport::OnReadPacket);
   ice_transport_channel_->SignalCandidateGathered.connect(
@@ -86,6 +88,12 @@ void IceTransport::SetIceRole(cricket::IceRole role) {
   ice_transport_channel_->SetIceRole(role);
 }
 
+void IceTransport::OnRoleConflict(cricket::IceTransportInternal* ice_transport) {
+  ice_transport_channel_->SetIceRole(
+      (ice_transport_channel_->GetIceRole() == cricket::ICEROLE_CONTROLLING) ?
+      cricket::ICEROLE_CONTROLLED : cricket::ICEROLE_CONTROLLING);
+}
+
 void IceTransport::OnReadPacket(rtc::PacketTransportInternal* transport,
                                 const char* data,
                                 size_t data_size,
@@ -110,7 +118,9 @@ void IceTransport::OnCandidateGathered(
 void IceTransport::OnWritableState(rtc::PacketTransportInternal* ice_transport) {
   if (ice_transport->writable()) {
     LOG(INFO) << "We're writable, yo";
-    quartc_session_->OnTransportCanWrite();
+    if (quartc_session_) {
+      quartc_session_->OnTransportCanWrite();
+    }
   }
 }
 

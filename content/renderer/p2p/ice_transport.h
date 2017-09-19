@@ -49,6 +49,7 @@ class CONTENT_EXPORT IceTransport
   }
 
  private:
+  void OnRoleConflict(cricket::IceTransportInternal* ice_transport);
   void OnReadPacket(rtc::PacketTransportInternal* transport,
                     const char* data,
                     size_t data_size,
