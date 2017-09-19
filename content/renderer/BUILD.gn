@@ -739,6 +739,8 @@ target(link_target_type, "renderer") {
       "p2p/filtering_network_manager.h",
       "p2p/host_address_request.cc",
       "p2p/host_address_request.h",
+      "p2p/ice_transport.cc",
+      "p2p/ice_transport.h",
       "p2p/ipc_network_manager.cc",
       "p2p/ipc_network_manager.h",
       "p2p/ipc_socket_factory.cc",
