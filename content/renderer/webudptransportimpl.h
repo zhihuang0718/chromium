@@ -53,7 +53,7 @@ class WebUdpTransportImpl : public blink::WebUdpTransport,
   scoped_refptr<P2PSocketClientImpl> socket_;
   net::IPEndPoint local_address_;
   net::IPEndPoint remote_address_;
-  net::QuartcSessionInterface* quartc_session_;
+  net::QuartcSessionInterface* quartc_session_ = nullptr;
 };
 
 }  // namespace content
