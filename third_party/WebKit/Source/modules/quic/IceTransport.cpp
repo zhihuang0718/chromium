@@ -42,7 +42,9 @@
 namespace blink {
 
 IceTransport* IceTransport::Create(ExecutionContext* context) {
-  return new IceTransport(context);
+  IceTransport* transport = new IceTransport(context);
+  transport->SuspendIfNeeded();
+  return transport;
 }
 
 IceTransport::IceTransport(ExecutionContext* context)

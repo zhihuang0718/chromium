@@ -38,7 +38,9 @@
 namespace blink {
 
 UdpTransport* UdpTransport::Create(ExecutionContext* context) {
-  return new UdpTransport(context);
+  UdpTransport* transport = new UdpTransport(context);
+  transport->SuspendIfNeeded();
+  return transport;
 }
 
 UdpTransport::UdpTransport(ExecutionContext* context)

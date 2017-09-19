@@ -42,28 +42,32 @@ namespace blink {
 
 QuicTransport* QuicTransport::Create(ExecutionContext* context,
                                      bool is_server,
-                                     UdpTransport* transport,
+                                     UdpTransport* udp_transport,
                                      ExceptionState& exception_state) {
-  if (!transport) {
+  if (!udp_transport) {
     exception_state.ThrowDOMException(
         kTypeMismatchError,
         ExceptionMessages::ArgumentNullOrIncorrectType(1, "UdpTransport"));
     return nullptr;
   }
-  return new QuicTransport(context, is_server, transport);
+  QuicTransport * quic_transport = new QuicTransport(context, is_server, udp_transport);
+  quic_transport->SuspendIfNeeded();
+  return quic_transport;
 }
 
 QuicTransport* QuicTransport::Create(ExecutionContext* context,
                                      bool is_server,
-                                     IceTransport* transport,
+                                     IceTransport* ice_transport,
                                      ExceptionState& exception_state) {
-  if (!transport) {
+  if (!ice_transport) {
     exception_state.ThrowDOMException(
         kTypeMismatchError,
         ExceptionMessages::ArgumentNullOrIncorrectType(1, "IceTransport"));
     return nullptr;
   }
-  return new QuicTransport(context, is_server, transport);
+  QuicTransport * quic_transport = new QuicTransport(context, is_server, ice_transport);
+  quic_transport->SuspendIfNeeded();
+  return quic_transport;
 }
 
 QuicTransport::QuicTransport(ExecutionContext* context, bool is_server, UdpTransport* transport)
@@ -118,6 +122,7 @@ QuicStream* QuicTransport::createStream(ScriptState* script_state, ExceptionStat
   }
   ExecutionContext* context = ExecutionContext::From(script_state);
   QuicStream* stream = new QuicStream(context, web_stream);
+  stream->SuspendIfNeeded();
   web_stream->SetDelegate(stream);
   return stream;
 }
@@ -126,6 +131,7 @@ void QuicTransport::OnIncomingStream(WebQuicStream* web_stream) {
   DCHECK(GetExecutionContext()->IsContextThread());
 
   QuicStream* stream = new QuicStream(GetExecutionContext(), web_stream);
+  stream->SuspendIfNeeded();
   web_stream->SetDelegate(stream);
   ScheduleDispatchEvent(QuicStreamEvent::Create(EventTypeNames::stream,
                                                 false, false, stream));
