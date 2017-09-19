@@ -28,15 +28,15 @@ IceTransport::IceTransport(P2PSocketDispatcher* p2p_socket_dispatcher, blink::We
   socket_factory_.reset(new IpcPacketSocketFactory(p2p_socket_dispatcher));
   port_allocator_.reset(new cricket::BasicPortAllocator(network_manager_.get(),
                                                         socket_factory_.get()));
+  cricket::ServerAddresses stun_servers;
+  stun_servers.insert({"stun.l.google.com", 19302});
+  port_allocator_->SetConfiguration(stun_servers, std::vector<cricket::RelayServerConfig>(), 0, false);
 
   ice_transport_channel_ = base::MakeUnique<cricket::P2PTransportChannel>(
       "ice", 1, port_allocator_.get());
   // Hack for the hackathon. In reality we'd expose these as JS APIs.
-  LOG(INFO) << "Setting ICE credentials";
   ice_transport_channel_->SetIceCredentials("foo", "bar");
-  LOG(INFO) << "Setting remote ICE credentials";
   ice_transport_channel_->SetRemoteIceCredentials("foo", "bar");
-  LOG(INFO) << "About to start gathering.";
   ice_transport_channel_->MaybeStartGathering();
 
   ice_transport_channel_->SignalReadPacket.connect(this,
@@ -45,7 +45,6 @@ IceTransport::IceTransport(P2PSocketDispatcher* p2p_socket_dispatcher, blink::We
       this, &IceTransport::OnCandidateGathered);
   ice_transport_channel_->SignalWritableState.connect(
       this, &IceTransport::OnWritableState);
-  LOG(INFO) << "Completed construction of content::IceTransport";
 }
 
 IceTransport::~IceTransport(){
